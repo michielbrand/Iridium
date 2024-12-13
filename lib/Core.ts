@@ -51,15 +51,16 @@ export class Core {
         }
     }
 
-    private mongoConnectAsyc = Bluebird.promisify<MongoDB.Db, string, MongoDB.MongoClientOptions>(MongoDB.MongoClient.connect);
+    private mongoConnectAsyc = Bluebird.promisify<MongoDB.MongoClient, string, MongoDB.MongoClientOptions>(MongoDB.MongoClient.connect);
 
     private _plugins: Plugin[] = [];
     private _url: string;
     private _config: Configuration|undefined;
     private _connection: MongoDB.Db|undefined;
+    private _client: MongoDB.MongoClient | undefined;
     private _cache: Cache = new NoOpCache();
 
-    private _connectPromise: Bluebird<MongoDB.Db>|undefined;
+    private _connectPromise: Bluebird<MongoDB.MongoClient>|undefined;
 
     /**
      * Gets the plugins registered with this Iridium Core
@@ -86,6 +87,17 @@ export class Core {
     get connection(): MongoDB.Db {
         if (!this._connection) throw new Error("Iridium Core not connected to a database.");
         return this._connection;
+    }
+
+    /**
+     * Gets the currently active database client for this Iridium
+     * Core.
+     * @returns {MongoDB.MongoClient}
+   */
+    get client(): MongoDB.MongoClient {
+        if (!this._client)
+        throw new Error("Iridium Core not connected to a client.");
+        return this._client;
     }
 
     /**
@@ -128,19 +140,21 @@ export class Core {
      */
     connect(callback?: (err: Error, core: Core) => any): Bluebird<Core> {
         return Bluebird.resolve().then(() => {
-            if (this._connection) return this._connection;
+            if (this._client) return this._client;
             if (this._connectPromise) return this._connectPromise;
             return this._connectPromise = this.mongoConnectAsyc(this.url, this._config && this._config.options || {});
-        }).then((db: MongoDB.Db) => {
-            return this.onConnecting(db);
-        }).then(db => {
-            this._connection = db;
+        }).then((client: MongoDB.MongoClient) => {
+            this._client = client;
+            return this.onConnecting(client.db());
+        }).then(connection => {
+            this._connection = connection
             this._connectPromise = undefined;
             return this.onConnected();
         }).then(() => {
             return this;
         }, (err) => {
-            if (this._connection) this._connection.close();
+            if (this._client) this._client.close();
+            this._client = undefined;
             this._connection = undefined;
             this._connectPromise = undefined;
             return Bluebird.reject(err);
@@ -153,10 +167,11 @@ export class Core {
      */
     close(): Bluebird<Core> {
         return Bluebird.resolve().then(() => {
-            if (!this._connection) return this;
-            let conn: MongoDB.Db = this._connection;
+            if (!this._client) return this;
+            let client: MongoDB.MongoClient = this._client;
+            this._client = undefined;
             this._connection = undefined;
-            conn.close();
+            client.close();
             return this;
         });
     }

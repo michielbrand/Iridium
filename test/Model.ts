@@ -813,9 +813,10 @@ describe("Model",() => {
         it("should allow replacement updates to be conducted",() => {
             return model.get().then(instance => {
                 instance.answer++;
-                return chai.expect(model.update(instance._id, instance.document, { multi: false })).to.eventually.equal(1);
+                return chai.expect(model.update(instance._id, { $set: {answer: (instance.document as any )} }, { multi: false })).to.eventually.equal(1);
             });
         });
+
 
         it("should allow filtering using a selector",() => {
             return chai.expect(model.update({ answer: 10 }, { $inc: { answer: 1 } })).to.eventually.equal(1);

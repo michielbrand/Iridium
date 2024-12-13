@@ -270,7 +270,7 @@ export class Model<TDocument extends { _id?: any }, TInstance> {
         if (!_.isPlainObject(conditions)) conditions = { _id: conditions };
         conditions = this._helpers.convertToDB(conditions);
 
-        let cursor = this.collection.find(conditions);
+        let cursor = this.collection.find(conditions as Conditions);
 
         if(fields)
             cursor = cursor.project(fields);
@@ -498,7 +498,7 @@ export class Model<TDocument extends { _id?: any }, TInstance> {
                 let docs = this._handlers.creatingDocuments(objects);
                 return docs.map((object: { _id: any; }) => {
                     return new Bluebird<any[]>((resolve, reject) => {
-                        this.collection.findOneAndUpdate({ _id: object._id || { $exists: false }}, object, {
+                        this.collection.findOneAndUpdate({ _id: object._id || { $exists: false }}, { $set: {answer: object }}, {
                             upsert: options.upsert,
                             returnOriginal: false
                         }, (err, result) => {
@@ -572,9 +572,9 @@ export class Model<TDocument extends { _id?: any }, TInstance> {
                 }
 
                 if (opts.multi)
-                    return this.collection.updateMany(conditions, changes, opts, callback);
+                    return this.collection.updateMany(conditions as { _id?: string; } | Conditions, changes, opts, callback);
 
-                return this.collection.updateOne(conditions, changes, opts, callback)
+                return this.collection.updateOne(conditions as { _id?: string; } | Conditions, changes, opts, callback)
             })
         }).nodeify(callback);
     }
@@ -688,7 +688,7 @@ export class Model<TDocument extends { _id?: any }, TInstance> {
         return new Bluebird<T[]>((resolve, reject) => {
             this.collection.aggregate(pipeline, (err, results) => {
                 if(err) return reject(err);
-                return resolve(results);
+                return resolve(results.toArray());
             });
         });
     }

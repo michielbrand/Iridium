@@ -6,9 +6,8 @@
 // ${fileExtname}: the current opened file's extension
 // ${cwd}: the current working directory of the spawned process
 {
-	"version": "0.1.0",
+	"version": "2.0.0",
 	"command": "npm",
-	"showOutput": "silent",
 	
 	"windows": {
 		"command": "npm.cmd"
@@ -16,37 +15,48 @@
 	
 	"tasks": [
 		{
-			"taskName": "build",
-			"args": ["run"],
-			"isBuildCommand": true,
-			"problemMatcher": ["$tsc", {
-				"fileLocation": "relative",
-				"owner": "typescript",
-				"pattern": {
-					"regexp": "^([^(]+)\\((\\d+,\\d+)\\)\\: (error|warning) TS(\\d+): (.*)$",
-					"file": 1,
-					"location": 2,
-					"code": 3,
-					"severity": 4,
-					"message": 5
+			"label": "build",
+			"args": [
+				"build",
+				"run"
+			],
+			"problemMatcher": [
+				"$tsc",
+				{
+					"fileLocation": "relative",
+					"owner": "typescript",
+					"pattern": {
+						"regexp": "^([^(]+)\\((\\d+,\\d+)\\)\\: (error|warning) TS(\\d+): (.*)$",
+						"file": 1,
+						"location": 2,
+						"code": 3,
+						"severity": 4,
+						"message": 5
+					}
+				},
+				{
+					"fileLocation": "relative",
+					"owner": "typescript",
+					"pattern": {
+						"regexp": "^(error|warning) TS(\\d+): File '([^']+)'.*$",
+						"file": 3,
+						"location": 2,
+						"code": 2,
+						"severity": 1,
+						"message": 3
+					}
 				}
-			}, {
-				"fileLocation": "relative",
-				"owner": "typescript",
-				"pattern": {
-					"regexp": "^(error|warning) TS(\\d+): File '([^']+)'.*$",
-					"file": 3,
-					"location": 2,
-					"code": 2,
-					"severity": 1,
-					"message": 3
-				}
-			}]
+			],
+			"group": {
+				"_id": "build",
+				"isDefault": false
+			}
 		},
 		{
-			"taskName": "test",
-			"args": [],
-			"isTestCommand": true,
+			"label": "test",
+			"args": [
+				"test"
+			],
 			"problemMatcher": {
 				"owner": "mocha",
 				"pattern": {
@@ -54,29 +64,52 @@
 					"file": 1,
 					"message": 2
 				}
+			},
+			"group": {
+				"_id": "test",
+				"isDefault": false
 			}
 		},
 		{
-			"taskName": "lint",
-			"args": ["run", "lint", "--", "${file}", "--exclude"],
+			"label": "lint",
+			"args": [
+				"lint",
+				"run",
+				"lint",
+				"--",
+				"${file}",
+				"--exclude"
+			],
 			"problemMatcher": "$jshint"
 		},
 		{
-			"taskName": "install",
-			"args": []	
+			"label": "install",
+			"args": [
+				"install"
+			],
+			"problemMatcher": []
 		},
 		{
-			"taskName": "update",
-			"args": []	
+			"label": "update",
+			"args": [
+				"update"
+			],
+			"problemMatcher": []
 		},
 		{
-			"taskName": "benchmark",
-			"args": ["run"],
-			"showOutput": "always"
+			"label": "benchmark",
+			"args": [
+				"benchmark",
+				"run"
+			],
+			"problemMatcher": []
 		},
 		{
-			"taskName": "publish",
-			"args": []	
+			"label": "publish",
+			"args": [
+				"publish"
+			],
+			"problemMatcher": []
 		}
 	]
 }

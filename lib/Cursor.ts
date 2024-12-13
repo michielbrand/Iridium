@@ -99,9 +99,10 @@ export class Cursor<TDocument extends { _id?: any }, TInstance> {
      */
     next(callback?: General.Callback<TInstance>): Bluebird<TInstance|undefined> {
         return new Bluebird<TDocument|undefined>((resolve, reject) => {
-            this.cursor.next((err: Error, result: TDocument|undefined) => {
+            this.cursor.next((err: Error, result: TDocument|null) => {
                 if (err) return reject(err);
-                return resolve(result);
+                if (result !== null) return resolve(result);
+                else return resolve();
             });
         }).then((document) => {
             if (!document) return Bluebird.resolve<TInstance|undefined>(undefined);
